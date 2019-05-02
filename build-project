@@ -1,0 +1,64 @@
+#!/bin/bash
+
+current_Path=$(pwd)
+#git_Exist=$(which git)
+
+#git_V=$(expr length  "$git_Exist")
+#if (($git_V < 1))
+#then
+#echo "install git || git not found".
+#exit 1;
+#fi
+if ! [ -x "$(command -v git)" ]; then
+  echo 'Error: git is not installed.' >&2
+  exit 1
+fi
+
+help_Description(){
+echo "HELP DESCRIPTION"
+exit 1 ;
+}
+CREATE=false
+NAME=''
+URL_REPO=''
+CLONE=false
+
+while getopts 'hcln:u:' flag;
+do
+case ${flag}
+in
+h) help_Description exit 1 ;;
+c) CREATE="true";;
+n) NAME="${OPTARG}";;
+l) CLONE="true";;
+u) URL_REPO="${OPTARG}";;
+esac
+done
+
+COMPOSE_BUILD=""
+current_PathProject="$current_Path/project_directory/"
+
+echo Curent Path:
+echo $current_PathProject
+
+
+if [ $CREATE == "true"  ]
+then
+docker-compose up -d --build
+docker-compose exec app composer create-project --prefer-dist laravel/laravel test
+fi 
+
+if [ $CLONE == "true" ]
+then
+cd $current_PathProject
+git clone $URL_REPO .
+docker-compose up -d --build
+docker-compose exec app composer install && docker-compose exec app composer update
+fi
+
+echo "Setup Finished"
+echo "To bring back Docker Laravel type docker-composer up -d"
+echo ""
+echo ""
+echo "DO NOT MODIFIED FOLDER STRUCTUR !!!"
+echo "have FUN"
